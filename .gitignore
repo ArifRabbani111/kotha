@@ -1,1 +1,33 @@
+# Environment files
 .env
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Virtual environments
+venv/
+.env/
+.venv/
+
+# Databases and vector stores
+chroma_db/
+*.db
+
+# Data files
+data/
+*.txt
+*.csv
+*.json
+
+# Logs
+*.log
+
+# System files
+.DS_Store
+Thumbs.db
+
+# VSCode settings
+.vscode/

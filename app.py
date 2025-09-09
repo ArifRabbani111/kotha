@@ -1,59 +1,29 @@
-import os
-from dotenv import load_dotenv
-from langchain_google_genai import ChatGoogleGenerativeAI
-from langchain.prompts import ChatPromptTemplate
-from langchain.schema import AIMessage, HumanMessage
+from chatbot import Chatbot
 
-# Load API key from .env file
-load_dotenv()
+def main():
+    bot = Chatbot()
+    print("Hello! I'm your AI assistant. Type 'exit' to quit, or 'upload <file>' to add a PDF.")
 
-# Check if the API key is loaded
-if not os.getenv("GOOGLE_API_KEY"):
-    raise ValueError("GOOGLE_API_KEY not found. Please set it in your .env file.")
+    while True:
+        user_input = input("You: ")
 
-# 1. Define the LLM model
-model = ChatGoogleGenerativeAI(model="gemini-1.5-flash")
+        if user_input.lower() == 'exit':
+            print("Goodbye!")
+            break
 
-# 2. Set up the chat history
-chat_history = []
+        # Handle PDF upload
+        if user_input.startswith("upload "):
+            pdf_path = user_input.split(" ", 1)[1]
+            try:
+                bot.kb.add_pdf(pdf_path)
+                print(f"Assistant: ✅ PDF '{pdf_path}' uploaded successfully.")
+            except Exception as e:
+                print(f"Assistant: ❌ Error: {e}")
+            continue
 
-# 3. Define the prompt template
-# This is a key step for "prompt engineering"
-# The system message gives the model its "role"
-# The 'chat_history' and 'user_question' placeholders will be filled dynamically
-prompt = ChatPromptTemplate.from_messages([
-    ("system", "You are a friendly and helpful assistant. Keep your answers concise and conversational."),
-    ("placeholder", "{chat_history}"),
-    ("human", "{user_question}")
-])
+        # Normal chat
+        bot.stream_response(user_input)
 
-# 4. Create the main conversation loop
-def get_llm_response(user_question):
-    global chat_history
+if __name__ == "__main__":
+    main()
 
-    # Combine the system message, chat history, and new user question
-    # This is how the model "remembers" the conversation
-    formatted_prompt = prompt.format_messages(
-        chat_history=chat_history,
-        user_question=user_question
-    )
-
-    # Invoke the LLM with the formatted prompt
-    ai_response = model.invoke(formatted_prompt)
-
-    # Update the chat history with both the user's message and the bot's response
-    chat_history.append(HumanMessage(content=user_question))
-    chat_history.append(AIMessage(content=ai_response.content))
-
-    return ai_response.content
-
-# 5. Run the chatbot
-print("Hello! I'm your AI assistant. Type 'exit' to end the conversation.")
-while True:
-    user_input = input("You: ")
-    if user_input.lower() == 'exit':
-        print("Goodbye!")
-        break
-    
-    response = get_llm_response(user_input)
-    print(f"Assistant: {response}")
