@@ -12,7 +12,7 @@ if not os.getenv("GOOGLE_API_KEY"):
     raise ValueError("GOOGLE_API_KEY not found. Please set it in your .env file.")
 
 # 1. Define the LLM model
-model = ChatGoogleGenerativeAI(model="gemini-pro")
+model = ChatGoogleGenerativeAI(model="gemini-1.5-flash")
 
 # 2. Set up the chat history
 chat_history = []
