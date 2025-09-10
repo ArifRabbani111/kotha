@@ -1,61 +1,94 @@
 import streamlit as st
 from chatbot import Chatbot
 
-# ---------------------------
-# Initialize chatbot
-# ---------------------------
+# -------------------
+# Init
+# -------------------
 if "bot" not in st.session_state:
     st.session_state.bot = Chatbot()
 if "chat_history" not in st.session_state:
     st.session_state.chat_history = []
 
 st.set_page_config(page_title="Kotha - AI Chatbot", layout="wide")
+
+# -------------------
+# Sidebar (chat history)
+# -------------------
+with st.sidebar:
+    st.title("💬 Chat History")
+    if st.session_state.chat_history:
+        for i, (q, a) in enumerate(st.session_state.chat_history):
+            st.markdown(f"**🧑 You:** {q}")
+            st.markdown(f"**🤖 AI:** {a}")
+            st.markdown("---")
+    else:
+        st.info("No conversations yet.")
+
+    if st.button("🗑 Clear History"):
+        st.session_state.chat_history = []
+        st.rerun()
+
+# -------------------
+# Chat area
+# -------------------
 st.title("🤖 Kotha - Your AI Assistant")
 
-# ---------------------------
-# Multi-file uploader
-# ---------------------------
-uploaded_files = st.file_uploader(
-    "📂 Upload PDFs, TXTs, or DOCXs",
-    type=["pdf", "txt", "docx"],
-    accept_multiple_files=True
+chat_container = st.container()
+with chat_container:
+    for question, answer in st.session_state.chat_history:
+        st.markdown(f"**🧑 You:** {question}")
+        st.markdown(f"**🤖 Assistant:** {answer}")
+        st.markdown("---")
+
+# -------------------
+# Bottom bar (like ChatGPT)
+# -------------------
+st.markdown(
+    """
+    <style>
+    .chat-input-container {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        position: fixed;
+        bottom: 20px;
+        left: 20px;
+        right: 20px;
+        background: white;
+        padding: 10px;
+        border-radius: 12px;
+        box-shadow: 0px 2px 10px rgba(0,0,0,0.15);
+    }
+    .chat-input {
+        flex: 1;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True,
 )
 
-if uploaded_files:
-    for uploaded_file in uploaded_files:
-        file_path = f"data/{uploaded_file.name}"
-        with open(file_path, "wb") as f:
-            f.write(uploaded_file.getbuffer())
+with st.container():
+    col1, col2, col3 = st.columns([1, 8, 1])
 
-        # Add file to KB
-        st.session_state.bot.kb.load_document(file_path)
-        st.success(f"✅ Loaded and indexed: {uploaded_file.name}")
+    with col1:
+        uploaded_file = st.file_uploader("➕", type=["pdf", "txt", "docx"], label_visibility="collapsed")
 
-# ---------------------------
-# Chat input
-# ---------------------------
-user_input = st.chat_input("Ask me something...")
+    with col2:
+        user_input = st.text_input("Type your message...", key="user_input", label_visibility="collapsed")
 
-if user_input:
-    response, sources = st.session_state.bot.get_response(user_input)
-    st.session_state.chat_history.append(("You", user_input))
-    st.session_state.chat_history.append(("Assistant", response))
+    with col3:
+        send_button = st.button("📤", use_container_width=True)
 
-    # Show assistant reply
-    st.markdown(f"**🤖 Assistant:** {response}")
+# -------------------
+# Logic
+# -------------------
+if send_button and user_input:
+    response = st.session_state.bot.get_response(user_input)
+    st.session_state.chat_history.append((user_input, response))
+    st.rerun()
 
-    # Show sources
-    if sources:
-        with st.expander("📄 Sources used for this answer"):
-            for i, src in enumerate(sources, 1):
-                st.markdown(f"**Source {i}:** {src[:500]}...")
-
-# ---------------------------
-# Display chat history
-# ---------------------------
-st.subheader("💬 Conversation History")
-for role, msg in st.session_state.chat_history:
-    if role == "You":
-        st.markdown(f"**🧑 {role}:** {msg}")
-    else:
-        st.markdown(f"**🤖 {role}:** {msg}")
+if uploaded_file:
+    file_path = f"data/{uploaded_file.name}"
+    with open(file_path, "wb") as f:
+        f.write(uploaded_file.getbuffer())
+    st.success(f"Uploaded: {uploaded_file.name}")
