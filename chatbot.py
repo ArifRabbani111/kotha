@@ -31,22 +31,33 @@ class Chatbot:
 
     def get_response(self, user_question):
         # Search knowledge base
-        docs = self.kb.query(user_question)
+        docs = self.kb.similarity_search(user_question, k=3)
 
-        # Add retrieved context
-        context_text = "\n".join(docs)
-        full_question = f"Use the following context if relevant:\n{context_text}\n\nUser question: {user_question}"
+        # Step 2: Prepare context for the LLM
+        context_text = "\n\n".join(docs)
+        full_question = f"""
+        Use the following context if relevant. 
+        If the context is not enough, answer from your general knowledge.
 
+        Context:
+        {context_text}
+
+        User question: {user_question}
+        """
+
+        # Step 3: Format prompt with history
         formatted_prompt = prompt.format_messages(
             chat_history=self.memory.get_history(),
             user_question=full_question
         )
 
+       # Step 4: Generate response
         ai_response = model.invoke(formatted_prompt)
-
-        # Update memory
+        
+       # Step 5: Update memory
         self.memory.add(HumanMessage(content=user_question))
         self.memory.add(AIMessage(content=ai_response.content))
 
-        return ai_response.content
+       # Step 6: Return response + sources
+        return ai_response.content, docs
 
