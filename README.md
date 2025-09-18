@@ -1,59 +1,89 @@
 🗣️ Kotha – AI-Powered Personal Knowledge Chatbot
 
-Kotha is an AI-powered chatbot that lets you upload your personal documents (TXT, PDF) and then chat with them naturally.
-It uses Large Language Models (LLMs) with vector search (ChromaDB) to provide accurate, context-aware answers.
+Kotha is an AI-powered chatbot that lets you upload your personal documents (TXT, PDF, DOCX) and then chat with them naturally.
+It uses Large Language Models (LLMs) with vector search (FAISS) to provide accurate, context-aware answers.
 
 🚀 Features
 
-📂 Document Upload: Upload .txt and .pdf files as knowledge sources.
+📂 Document Upload: Upload .txt, .pdf, and .docx files as knowledge sources.
 
 🧠 Memory System: Remembers previous chats for a more human-like conversation.
 
-🔍 Vector Database (ChromaDB): Stores embeddings for efficient semantic search.
+🔍 Vector Database (FAISS): Stores embeddings for efficient semantic search.
 
-🤖 AI Responses: Uses OpenAI (or Hugging Face) LLMs for intelligent answers.
+🤖 AI Responses: Uses Google Gemini via LangChain.
 
-🛠️ Extensible: Add more file types (CSV, DOCX, etc.) in the future.
+🛠️ Extensible: Add more file types (CSV, etc.) in the future.
 
 🏗️ Project Structure
 KOTHA/
-│── app.py              # Main Flask/FastAPI app
-│── chatbot.py          # Chatbot logic
-│── knowledge.py        # Handles knowledge ingestion (TXT/PDF -> vectors)
-│── memory.py           # Manages chat history
-│── requirements.txt    # Python dependencies
-│── .gitignore          # Ignore sensitive/unnecessary files
-│── data/               # Uploaded documents (ignored in Git)
-│── chroma_db/          # Vector database (ignored in Git)
+│── backend/
+│   ├── app.py              # FastAPI backend (file upload + chat)
+│   ├── chatbot.py          # Chatbot logic (Gemini)
+│   ├── knowledge.py        # Ingestion (TXT/PDF/DOCX -> chunks -> FAISS)
+│   ├── memory.py           # Chat history (optional)
+│   └── requirements.txt    # Backend dependencies
+│
+└── frontend/
+    ├── ui.py               # Streamlit UI
+    └── requirements.txt    # Frontend dependencies
 
 ⚡ Installation & Setup
+
 1️⃣ Clone Repository
+
+```
 git clone https://github.com/your-username/kotha.git
 cd kotha
+```
 
-2️⃣ Create Virtual Environment
+2️⃣ Create Virtual Environments
+
+Backend
+```
+cd backend
 python -m venv venv
-source venv/bin/activate   # macOS/Linux
-venv\Scripts\activate      # Windows
-
-3️⃣ Install Dependencies
+venv\Scripts\activate    # Windows
+# source venv/bin/activate  # macOS/Linux
 pip install -r requirements.txt
+```
 
-4️⃣ Setup Environment Variables
+Frontend (optional separate venv)
+```
+cd ../frontend
+python -m venv venv
+venv\Scripts\activate    # Windows
+# source venv/bin/activate  # macOS/Linux
+pip install -r requirements.txt
+```
 
-Create a .env file in the root folder:
+3️⃣ Setup Environment Variables
 
-OPENAI_API_KEY=your_openai_api_key
+Create an environment variable (or a .env loaded before run):
 
-5️⃣ Run the App
+```
+GOOGLE_API_KEY=your_google_gemini_api_key
+```
+
+4️⃣ Run the App
+
+Start backend (port 5000):
+```
+cd backend
+venv\Scripts\activate
 python app.py
+```
+
+Start frontend (in a separate terminal):
+```
+cd frontend
+venv\Scripts\activate
+streamlit run ui.py
+```
 
 🧑‍💻 Usage
 
-Start the server with python app.py.
-
-Upload documents (.txt / .pdf).
-
-Ask natural language questions about your files.
-
-Chatbot will respond using AI + your knowledge base.
+- Open Streamlit link (usually http://localhost:8501)
+- Upload documents (.txt / .pdf / .docx)
+- Ask natural language questions about your files
+- Chatbot responds using AI + your knowledge base
